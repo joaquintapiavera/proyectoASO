@@ -5,7 +5,7 @@ try:
     # asumo que el pyuic generó ui/anadir_host.py con la clase Ui_AddHost
     from ui.anadir_host import Ui_AddHost
 except Exception:
-    from anadir_host import Ui_AddHost
+    from ui.anadir_host import Ui_AddHost
 
 
 class DialogoAddHost(QtWidgets.QDialog):
