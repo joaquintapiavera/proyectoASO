@@ -1,4 +1,6 @@
 from PyQt6 import QtWidgets
+
+from controlador.controlador_export_wiget import ControladorExportWidget
 from ui.configuracion import Ui_MainWindow
 
 class ControladorConfiguracion(QtWidgets.QMainWindow):
@@ -27,7 +29,12 @@ class ControladorConfiguracion(QtWidgets.QMainWindow):
         print("Botón Atrás presionado")
 
     def siguiente(self):
-        print("Botón Siguiente presionado")
+        # Crear instancia del widget
+        self.ventana_siguiente = ControladorExportWidget()
+        self.ventana_siguiente.show()
+
+        # Cerrar o esconder la ventana actual
+        self.close()  # o self.hide() si quieres mantenerla en memoria
 
     def estado_nfs(self):
         if self.ui.radioButton.isChecked():
