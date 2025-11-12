@@ -161,7 +161,7 @@
    <widget class="QPushButton" name="Cancelar">
     <property name="geometry">
      <rect>
-      <x>580</x>
+      <x>470</x>
       <y>610</y>
       <width>111</width>
       <height>31</height>
@@ -184,6 +184,19 @@
      <string>Finalizar</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="pushButton">
+    <property name="geometry">
+     <rect>
+      <x>590</x>
+      <y>610</y>
+      <width>93</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Volver</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -191,7 +204,7 @@
      <x>0</x>
      <y>0</y>
      <width>823</width>
-     <height>23</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>

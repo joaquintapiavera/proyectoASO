@@ -1,49 +1,42 @@
+# controlador/controlador_configuracion.py
 from PyQt6 import QtWidgets
-
-from controlador.controlador_export_wiget import ControladorExportWidget
-from ui.configuracion import Ui_MainWindow
+from ui.configuracion import Ui_MainWindow  # asegúrate de que este archivo exista
 
 class ControladorConfiguracion(QtWidgets.QMainWindow):
-    def __init__(self):
-        super().__init__()
+    """
+    Controlador que envuelve la UI 'configuracion' generada por pyuic6.
+    Hereda de QMainWindow porque la UI llama a setCentralWidget().
+    """
+    def __init__(self, cambiador=None, parent=None):
+        super().__init__(parent)
+        self.cambiador = cambiador
         self.ui = Ui_MainWindow()
+        # setupUi espera un QMainWindow; pasamos self (que ahora lo es)
         self.ui.setupUi(self)
-        self.ui.pushButton.clicked.connect(self.ayuda)
-        self.ui.pushButton_2.clicked.connect(self.cancelar)
-        self.ui.pushButton_3.clicked.connect(self.atras)
-        self.ui.pushButton_4.clicked.connect(self.siguiente)
 
-        self.ui.radioButton.toggled.connect(self.estado_nfs)
-        self.ui.radioButton_2.toggled.connect(self.estado_nfs)
+        # Conectar botones (nombres según tu ui)
+        # pushButton_4 = "Siguiente", pushButton_3 = "Atrás"
+        self.ui.pushButton_4.clicked.connect(self.on_siguiente)
+        self.ui.pushButton_3.clicked.connect(self.on_atras)
 
-        self.ui.checkBox.toggled.connect(self.nfsv4_habilitado)
-        self.ui.checkBox_2.toggled.connect(self.gss_habilitado)
+    def on_siguiente(self):
+        print("➡️ Siguiente pulsado (ir a 'export')")
+        if self.cambiador:
+            try:
+                self.cambiador.mostrar_vista("export")
+                return
+            except Exception as e:
+                print("Error mostrando 'export':", e)
+        print("No hay cambiador o no se pudo navegar a 'export'")
 
-    def ayuda(self):
-        QtWidgets.QMessageBox.information(self, "Ayuda", "Aquí va la ayuda de NFS Server")
-
-    def cancelar(self):
+    def on_atras(self):
+        print("⬅️ Atrás pulsado")
+        if self.cambiador:
+            try:
+                # ajusta a la vista que quieras mostrar al pulsar 'Atrás'
+                self.cambiador.mostrar_vista("menu")
+                return
+            except Exception:
+                pass
+        # fallback: cerrar la ventana
         self.close()
-
-    def atras(self):
-        print("Botón Atrás presionado")
-
-    def siguiente(self):
-        # Crear instancia del widget
-        self.ventana_siguiente = ControladorExportWidget()
-        self.ventana_siguiente.show()
-
-        # Cerrar o esconder la ventana actual
-        self.close()  # o self.hide() si quieres mantenerla en memoria
-
-    def estado_nfs(self):
-        if self.ui.radioButton.isChecked():
-            print("NFS Server: Iniciar")
-        elif self.ui.radioButton_2.isChecked():
-            print("NFS Server: No iniciar")
-
-    def nfsv4_habilitado(self):
-        print("Habilitar NFSv4:", self.ui.checkBox.isChecked())
-
-    def gss_habilitado(self):
-        print("Enable GSS Security:", self.ui.checkBox_2.isChecked())

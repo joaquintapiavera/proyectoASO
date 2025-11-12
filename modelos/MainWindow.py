@@ -2,7 +2,7 @@ from PyQt6 import QtWidgets
 from utilidades.cambiador_vistas import CambiadorVistas
 import ui
 
-class MainWindow(QtWidgets.QMainWindow):
+class MainWidget(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
 
