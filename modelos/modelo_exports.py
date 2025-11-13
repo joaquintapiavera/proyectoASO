@@ -1,4 +1,3 @@
-# modelos/modelo_exports.py
 from dataclasses import dataclass, field
 from typing import List, Optional
 import re
@@ -14,31 +13,21 @@ class HostEntry:
 class ExportEntry:
     path: str
     hosts: List[HostEntry] = field(default_factory=list)
-    raw_comment: str = ""  # preserve comments / blank lines if needed
+    raw_comment: str = ""
 
 class ModeloExports:
-    """
-    Modelo simple para mantener la lista de exports y sus hosts.
-    - test_mode = True: no modifica /etc/exports, carga contenido de ejemplo.
-    - test_mode = False: intenta leer /etc/exports al inicializar.
-    """
-    def __init__(self, path: str = "/etc/exports", test_mode: bool = True):
+    def __init__(self, path: str = "/etc/exports"):
         self.path = path
-        self.test_mode = test_mode
         self.exports: List[ExportEntry] = []
-        if self.test_mode:
-            self.load_from_string(self._sample_content())
-        else:
-            try:
-                self.load_from_file(self.path)
-            except Exception:
-                # fallback a ejemplo si algo falla
-                self.load_from_string(self._sample_content())
+        try:
+            self.load_from_file(self.path)
+        except FileNotFoundError:
+            self.exports = []
+        except Exception:
+            self.exports = []
 
-    # ---------------- parsing / formatting ----------------
     @staticmethod
     def _tokenize_rest(rest: str):
-        # tokens como host(options) o host
         return re.findall(r'\S+\([^)]*\)|\S+', rest)
 
     @staticmethod
@@ -84,9 +73,8 @@ class ModeloExports:
                 else:
                     parts.append(h.host)
             lines.append(f"{e.path} {' '.join(parts)}")
-        return "\n".join(lines) + "\n"
+        return "\n".join(lines) + ("\n" if lines else "")
 
-    # ---------------- I/O ----------------
     def load_from_string(self, text: str):
         self.exports = self.parse_exports_text(text)
 
@@ -103,26 +91,17 @@ class ModeloExports:
         return dst
 
     def save_to_file(self, path: Optional[str] = None, overwrite: bool = False) -> str:
-        """
-        Guarda el /etc/exports formateado.
-        - Si test_mode True devuelve el texto (preview) y no escribe.
-        - Si test_mode False y overwrite True, escribe (requiere permisos).
-        Devuelve el texto escrito (o preview).
-        """
         text = self.format_exports_text(self.exports)
-        if self.test_mode:
-            return text
         p = path or self.path
         if not overwrite:
-            raise PermissionError("overwrite must be True to write in non-test mode")
-        self.backup(p)
+            raise PermissionError("overwrite must be True to write to file")
+        if os.path.exists(p):
+            self.backup(p)
         with open(p, "w", encoding="utf-8") as f:
             f.write(text)
         return text
 
-    # ---------------- operaciones de alto nivel ----------------
     def get_exports_paths(self) -> List[str]:
-        """Devuelve solo los paths (excluyendo comentarios/blank lines) en orden."""
         return [e.path for e in self.exports if e.path]
 
     def get_export_by_path(self, path: str) -> Optional[ExportEntry]:
@@ -165,9 +144,27 @@ class ModeloExports:
         e.hosts[host_index].options = new_options
         return True
 
-    # ---------------- ejemplo ----------------
-    def _sample_content(self) -> str:
-        return """# Ejemplo /etc/exports (modo test)
- /srv/nfs/data 192.168.1.0/24(rw,sync,no_root_squash) client1.local(ro,sync)
- /home/shared client2.local(rw) 10.0.0.5(ro)
-"""
+    @staticmethod
+    def verificar_directorio(path: str) -> bool:
+        return os.path.isdir(path)
+
+    @staticmethod
+    def crear_directorio(path: str, exist_ok: bool = True) -> tuple[bool, str]:
+        try:
+            os.makedirs(path, exist_ok=exist_ok)
+            return True, f"Directorio {path} creado o ya existe."
+        except PermissionError:
+            return False, "Error de permisos: no se pudo crear el directorio."
+        except Exception as e:
+            return False, f"Error inesperado: {e}"
+
+    def to_config_dict(self) -> dict:
+        out = {}
+        for e in self.exports:
+            if not e.path:
+                continue
+            lst = []
+            for h in e.hosts:
+                lst.append({"host": h.host, "options": h.options})
+            out[e.path] = lst
+        return out
